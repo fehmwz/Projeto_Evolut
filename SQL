@@ -1,0 +1,116 @@
+CREATE DATABASE db_evolut;
+USE db_evolut;
+
+CREATE TABLE cargos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT, 
+    salario_base DECIMAL(10,2)
+);
+
+CREATE TABLE treinamentos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(150) NOT NULL,
+    descricao TEXT,
+    carga_horaria INT,
+    link_conteudo VARCHAR(255)
+);
+
+CREATE TABLE departamentos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    gestor_id INT NULL
+);
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    tipo_perfil VARCHAR(50) NOT NULL, -- É o cargo, mas para não deixar com o mesmo nome da tabela deixarei assim.
+    data_admissao DATE,
+    departamento_id INT,
+    cargo_id INT,
+    gestor_id INT,
+    CONSTRAINT fk_usuario_departamento FOREIGN KEY (departamento_id) REFERENCES departamentos(id),
+    CONSTRAINT fk_usuario_cargo FOREIGN KEY (cargo_id) REFERENCES cargos(id),
+    CONSTRAINT fk_usuario_gestor FOREIGN KEY (gestor_id) REFERENCES usuarios(id)
+);
+
+ALTER TABLE departamentos
+ADD CONSTRAINT fk_departamentos_gestor
+FOREIGN KEY (gestor_id) REFERENCES usuarios(id);
+
+CREATE TABLE registro_ponto (
+    id INT AUTO_INCREMENT PRIMARY KEY, 
+    data_hora_entrada DATETIME NOT NULL,
+    data_hora_saida DATETIME,
+    tipo VARCHAR(50),
+    colaborador_id INT NOT NULL,
+    CONSTRAINT fk_ponto_colaborador FOREIGN KEY (colaborador_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE metas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo TEXT NOT NULL,
+    descricao VARCHAR(255),
+    prazo DATE,
+    status VARCHAR(50),
+    progresso VARCHAR(50),
+    colaborador_id INT NOT NULL,
+    CONSTRAINT fk_meta_colaborador FOREIGN KEY (colaborador_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE solicitacoes_ferias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    data_inicio DATE NOT NULL,
+    data_fim DATE NOT NULL,
+    status INT NOT NULL,
+    colaborador_id INT NOT NULL,
+    CONSTRAINT fk_ferias_colaborador FOREIGN KEY (colaborador_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE avaliacao_desempenho (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    periodo DATE NOT NULL,
+    nota_final TEXT,
+    comentarios TEXT,
+    colaborador_id INT NOT NULL,
+    avaliador_id INT NOT NULL,
+    CONSTRAINT fk_avaliacao_colaborador FOREIGN KEY (colaborador_id) REFERENCES usuarios(id),
+    CONSTRAINT fk_avaliacao_avaliador FOREIGN KEY (avaliador_id) REFERENCES usuarios(id)
+);
+
+CREATE Table feedbacks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    conteudo TEXT NOT NULL,
+    tipo VARCHAR(50),
+    data_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    remetente_id INT NOT NULL,
+    destinatario_id INT NOT NULL, 
+    CONSTRAINT fk_feedback_remetente FOREIGN KEY (remetente_id) REFERENCES usuarios(id),
+    CONSTRAINT fk_feedback_destinatario FOREIGN KEY (destinatario_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE treinamentos_usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    status TEXT,
+    data_conclusao DATE,
+    treinamento_id INT NOT NULL,
+    colaborador_id INT NOT NULL,
+    CONSTRAINT fk_tu_treinamento FOREIGN KEY (treinamento_id) REFERENCES treinamentos(id),
+    CONSTRAINT fk_tu_colaborador FOREIGN KEY (colaborador_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE plano_carreiras (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    requisitos_pendentes TEXT,
+    usuario_id INT NOT NULL,
+    treinamento_id INT NOT NULL,
+    cargo_atual_id INT NOT NULL,
+    cargo_alvo_id INT NOT NULL,
+    CONSTRAINT fk_pc_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    CONSTRAINT fk_pc_treinamento FOREIGN KEY (treinamento_id) REFERENCES treinamentos(id),
+    CONSTRAINT fk_pc_cargo_atual FOREIGN KEY (cargo_atual_id) REFERENCES cargos(id),
+    CONSTRAINT fk_pc_cargo_alvo FOREIGN KEY (cargo_alvo_id) REFERENCES cargos(id)
+);
